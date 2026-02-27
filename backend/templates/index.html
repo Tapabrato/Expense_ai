@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Smart Expense Categorizer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Expense Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
             height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(-45deg, #667eea, #764ba2, #6a11cb, #2575fc);
+            background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #000000);
             background-size: 400% 400%;
             animation: gradientBG 10s ease infinite;
+            color: white;
         }
 
         @keyframes gradientBG {
@@ -28,236 +27,166 @@
             100% { background-position: 0% 50%; }
         }
 
-        .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 40px;
-            width: 480px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-            color: white;
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
         }
 
-        h2 {
-            margin-bottom: 25px;
-            font-weight: 600;
+        .left-panel h1 {
+            font-size: 48px;
+            background: linear-gradient(90deg, #00f5ff, #ff00c8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .left-panel p {
+            margin-top: 20px;
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 0 40px rgba(0,255,255,0.2);
+            animation: floatCard 4s ease-in-out infinite;
+        }
+
+        @keyframes floatCard {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 15px;
             border: none;
             outline: none;
-            margin-bottom: 10px;
-            font-size: 15px;
+            margin-top: 20px;
+            font-size: 14px;
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 15px;
+            border-radius: 15px;
             border: none;
-            background: white;
-            color: #333;
+            margin-top: 15px;
+            background: linear-gradient(90deg, #00f5ff, #ff00c8);
+            color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s ease;
+            transition: 0.3s;
         }
 
         button:hover {
             transform: scale(1.05);
-            background: #f0f0f0;
         }
 
-        #result {
+        .result {
             margin-top: 20px;
-            font-size: 18px;
-            font-weight: 500;
+            text-align: center;
         }
 
-        .progress-container {
-            margin-top: 15px;
-            width: 100%;
-            height: 22px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 20px;
+        .prediction {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .confidence {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .progress {
+            margin-top: 10px;
+            height: 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
             overflow: hidden;
         }
 
         .progress-bar {
             height: 100%;
+            background: linear-gradient(90deg, #00f5ff, #ff00c8);
             width: 0%;
-            line-height: 22px;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 20px;
             transition: width 0.6s ease;
         }
 
-        .examples {
-            margin-top: 15px;
-            text-align: left;
+        @media(max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            .left-panel {
+                padding: 30px;
+                text-align: center;
+            }
         }
 
-        .examples p {
-            font-size: 13px;
-            margin-bottom: 5px;
-            opacity: 0.9;
-        }
-
-        .examples span {
-            display: inline-block;
-            background: rgba(255,255,255,0.25);
-            padding: 6px 12px;
-            margin: 4px;
-            border-radius: 15px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .examples span:hover {
-            background: white;
-            color: #333;
-        }
-
-        .more-examples {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-        }
-
-        .toggle-btn {
-            margin-top: 10px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: none;
-            background: rgba(255,255,255,0.4);
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            transition: 0.3s;
-        }
-
-        .toggle-btn:hover {
-            background: white;
-            color: #333;
-        }
-
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            opacity: 0.8;
-        }
     </style>
 </head>
-
 <body>
 
-<div class="card">
-    <h2>💰 AI Smart Expense Categorizer</h2>
+    <div class="left-panel">
+        <h1>AI Expense Intelligence</h1>
+        <p>Smart categorization powered by Machine Learning.  
+           Type any transaction description and let AI decide.</p>
+    </div>
 
-    <input type="text" id="description" placeholder="Enter transaction description">
+    <div class="right-panel">
+        <div class="card">
 
-    <button onclick="predict()">Predict Category</button>
+            <h2>Analyze Expense</h2>
 
-    <div class="examples">
-        <p>Try examples:</p>
+            <input type="text" id="description" placeholder="Enter expense description...">
 
-        <!-- Always visible -->
-        <span onclick="fillExample('Swiggy food order')">Swiggy food order</span>
-        <span onclick="fillExample('Uber ride to airport')">Uber ride</span>
-        <span onclick="fillExample('Electricity bill payment')">Electricity bill</span>
-        <span onclick="fillExample('Amazon shopping purchase')">Amazon shopping</span>
-        <span onclick="fillExample('Netflix subscription monthly')">Netflix</span>
+            <button onclick="predictExpense()">Predict Category</button>
 
-        <!-- Hidden -->
-        <div id="moreExamples" class="more-examples">
-            <span onclick="fillExample('Zomato dinner payment')">Zomato dinner</span>
-            <span onclick="fillExample('Petrol pump payment')">Petrol payment</span>
-            <span onclick="fillExample('Mobile recharge Airtel')">Mobile recharge</span>
-            <span onclick="fillExample('Doctor visit consultation fee')">Doctor visit</span>
-            <span onclick="fillExample('College semester fee payment')">College fee</span>
-            <span onclick="fillExample('SIP investment in mutual fund')">SIP investment</span>
-            <span onclick="fillExample('Stock market investment')">Stock investment</span>
-            <span onclick="fillExample('UPI transfer to friend')">UPI transfer</span>
-            <span onclick="fillExample('Spotify premium subscription')">Spotify</span>
-            <span onclick="fillExample('Flipkart electronics order')">Flipkart order</span>
+            <div class="result" id="result"></div>
+
         </div>
-
-        <button id="toggleBtn" class="toggle-btn" onclick="toggleExamples()">Show More</button>
     </div>
-
-    <div id="result"></div>
-
-    <div class="progress-container">
-        <div id="confidenceBar" class="progress-bar">0%</div>
-    </div>
-
-    <div class="footer">
-        Powered by Machine Learning 🚀
-    </div>
-</div>
 
 <script>
-function predict() {
-    let description = document.getElementById("description").value;
+function predictExpense() {
 
-    if (!description) {
-        alert("Please enter a transaction description.");
-        return;
-    }
+    const description = document.getElementById("description").value;
 
     fetch("/predict", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: description })
     })
     .then(response => response.json())
     .then(data => {
 
-        document.getElementById("result").innerHTML =
-            "Predicted Category: <b>" + data.category + "</b>";
+        const resultDiv = document.getElementById("result");
 
-        let confidence = data.confidence;
-        let bar = document.getElementById("confidenceBar");
-
-        bar.style.width = confidence + "%";
-        bar.innerHTML = confidence + "% Confidence";
-
-        if (confidence > 80) {
-            bar.style.background = "#28a745";
-        } else if (confidence > 50) {
-            bar.style.background = "#ffc107";
-        } else {
-            bar.style.background = "#dc3545";
-        }
-    })
-    .catch(error => {
-        document.getElementById("result").innerHTML =
-            "Server connection error!";
+        resultDiv.innerHTML = `
+            <div class="prediction">${data.category}</div>
+            <div class="confidence">Confidence: ${data.probability}%</div>
+            <div class="progress">
+                <div class="progress-bar" style="width:${data.probability}%"></div>
+            </div>
+        `;
     });
-}
-
-function fillExample(text) {
-    document.getElementById("description").value = text;
-}
-
-function toggleExamples() {
-    let more = document.getElementById("moreExamples");
-    let btn = document.getElementById("toggleBtn");
-
-    if (more.style.maxHeight) {
-        more.style.maxHeight = null;
-        btn.innerText = "Show More";
-    } else {
-        more.style.maxHeight = more.scrollHeight + "px";
-        btn.innerText = "Show Less";
-    }
 }
 </script>
 
