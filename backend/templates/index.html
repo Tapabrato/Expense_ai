@@ -10,6 +10,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
+            transition: background 0.4s, color 0.4s;
         }
 
         body {
@@ -19,6 +20,12 @@
             background-size: 400% 400%;
             animation: gradientBG 10s ease infinite;
             color: white;
+        }
+
+        body.light {
+            background: linear-gradient(135deg, #f6f9fc, #e9eff5);
+            color: #111;
+            animation: none;
         }
 
         @keyframes gradientBG {
@@ -42,12 +49,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .left-panel p {
-            margin-top: 20px;
-            font-size: 18px;
-            opacity: 0.8;
-        }
-
         .right-panel {
             flex: 1;
             display: flex;
@@ -57,19 +58,17 @@
 
         .card {
             width: 90%;
-            max-width: 420px;
+            max-width: 450px;
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(20px);
             padding: 30px;
             border-radius: 25px;
             box-shadow: 0 0 40px rgba(0,255,255,0.2);
-            animation: floatCard 4s ease-in-out infinite;
         }
 
-        @keyframes floatCard {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        body.light .card {
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
 
         input {
@@ -78,40 +77,60 @@
             border-radius: 15px;
             border: none;
             outline: none;
-            margin-top: 20px;
-            font-size: 14px;
+            margin-top: 15px;
         }
 
         button {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             border-radius: 15px;
             border: none;
-            margin-top: 15px;
+            margin-top: 12px;
             background: linear-gradient(90deg, #00f5ff, #ff00c8);
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.05);
         }
 
         #voiceBtn {
-            background: #111;
+            background: #222;
         }
 
-        #voiceBtn.listening {
-            background: red;
-            animation: pulse 1s infinite;
+        body.light #voiceBtn {
+            background: #ddd;
+            color: #111;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 5px red; }
-            50% { box-shadow: 0 0 20px red; }
-            100% { box-shadow: 0 0 5px red; }
+        .toggle-theme {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            padding: 8px 15px;
+            border-radius: 20px;
+            background: white;
+            color: black;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .examples {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-chip {
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        body.light .example-chip {
+            background: #eee;
         }
 
         .result {
@@ -119,20 +138,9 @@
             text-align: center;
         }
 
-        .prediction {
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        .confidence {
-            margin-top: 8px;
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
         .progress {
-            margin-top: 10px;
-            height: 10px;
+            margin-top: 8px;
+            height: 8px;
             border-radius: 10px;
             background: rgba(255,255,255,0.2);
             overflow: hidden;
@@ -146,46 +154,65 @@
         }
 
         @media(max-width: 900px) {
-            body {
-                flex-direction: column;
-            }
-            .left-panel {
-                padding: 30px;
-                text-align: center;
-            }
+            body { flex-direction: column; }
         }
 
     </style>
 </head>
 <body>
 
-    <div class="left-panel">
-        <h1>AI Expense Intelligence</h1>
-        <p>Smart categorization powered by Machine Learning.<br>
-           Type or speak your transaction and let AI decide.</p>
-    </div>
+<button class="toggle-theme" onclick="toggleTheme()">🌙 / ☀</button>
 
-    <div class="right-panel">
-        <div class="card">
+<div class="left-panel">
+    <h1>AI Expense Intelligence</h1>
+    <p>Type or speak your transaction and let AI categorize it.</p>
+</div>
 
-            <h2>Analyze Expense</h2>
+<div class="right-panel">
+    <div class="card">
 
-            <input type="text" id="description" placeholder="Enter expense description...">
+        <h2>Analyze Expense</h2>
 
-            <button onclick="predictExpense()">Predict Category</button>
+        <input type="text" id="description" placeholder="Enter expense description...">
 
-            <button id="voiceBtn" onclick="startVoice()">🎙 Speak Expense</button>
+        <button onclick="predictExpense()">Predict Category</button>
+        <button id="voiceBtn" onclick="startVoice()">🎙 Speak Expense</button>
 
-            <div class="result" id="result"></div>
-
+        <div class="examples">
+            <div class="example-chip" onclick="fillExample('Swiggy food order')">Swiggy</div>
+            <div class="example-chip" onclick="fillExample('Uber ride to office')">Uber</div>
+            <div class="example-chip" onclick="fillExample('Electricity bill payment')">Electricity</div>
+            <div class="example-chip" onclick="fillExample('Amazon shopping purchase')">Amazon</div>
+            <div class="example-chip" onclick="fillExample('Netflix monthly subscription')">Netflix</div>
+            <div class="example-chip" onclick="fillExample('Petrol pump payment')">Petrol</div>
+            <div class="example-chip" onclick="fillExample('Mobile recharge Airtel')">Recharge</div>
+            <div class="example-chip" onclick="fillExample('Doctor consultation fee')">Doctor</div>
+            <div class="example-chip" onclick="fillExample('Gym membership payment')">Gym</div>
+            <div class="example-chip" onclick="fillExample('Mutual fund SIP investment')">SIP</div>
+            <div class="example-chip" onclick="fillExample('Stock market investment')">Stocks</div>
+            <div class="example-chip" onclick="fillExample('College semester fees')">College</div>
+            <div class="example-chip" onclick="fillExample('Restaurant dinner with friends')">Restaurant</div>
+            <div class="example-chip" onclick="fillExample('Flight ticket booking')">Flight</div>
+            <div class="example-chip" onclick="fillExample('Zomato order')">Zomato</div>
         </div>
+
+        <div class="result" id="result"></div>
+
     </div>
+</div>
 
 <script>
+function toggleTheme() {
+    document.body.classList.toggle("light");
+}
+
+function fillExample(text) {
+    document.getElementById("description").value = text;
+    predictExpense();
+}
+
 function predictExpense() {
-
     const description = document.getElementById("description").value;
-
     if (!description) return;
 
     fetch("/predict", {
@@ -195,12 +222,9 @@ function predictExpense() {
     })
     .then(response => response.json())
     .then(data => {
-
-        const resultDiv = document.getElementById("result");
-
-        resultDiv.innerHTML = `
-            <div class="prediction">${data.category}</div>
-            <div class="confidence">Confidence: ${data.probability}%</div>
+        document.getElementById("result").innerHTML = `
+            <div><strong>${data.category}</strong></div>
+            <div>Confidence: ${data.probability}%</div>
             <div class="progress">
                 <div class="progress-bar" style="width:${data.probability}%"></div>
             </div>
@@ -208,38 +232,19 @@ function predictExpense() {
     });
 }
 
-
 function startVoice() {
-
     if (!('webkitSpeechRecognition' in window)) {
-        alert("Voice recognition not supported. Use Google Chrome.");
+        alert("Use Chrome for voice recognition.");
         return;
     }
 
     const recognition = new webkitSpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-
-    const voiceBtn = document.getElementById("voiceBtn");
-
     recognition.start();
-    voiceBtn.classList.add("listening");
-    voiceBtn.innerText = "🎧 Listening...";
 
     recognition.onresult = function(event) {
         const transcript = event.results[0][0].transcript;
         document.getElementById("description").value = transcript;
-
-        voiceBtn.classList.remove("listening");
-        voiceBtn.innerText = "🎙 Speak Expense";
-
         predictExpense();
-    };
-
-    recognition.onerror = function() {
-        voiceBtn.classList.remove("listening");
-        voiceBtn.innerText = "🎙 Speak Expense";
-        alert("Voice recognition error.");
     };
 }
 </script>
