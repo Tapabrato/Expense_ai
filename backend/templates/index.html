@@ -10,11 +10,11 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
-            transition: background 0.4s, color 0.4s;
+            transition: background 0.3s, color 0.3s;
         }
 
         body {
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #000000);
             background-size: 400% 400%;
@@ -34,6 +34,23 @@
             100% { background-position: 0% 50%; }
         }
 
+        .toggle-theme {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    background: linear-gradient(90deg, #00f5ff, #ff00c8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
         .left-panel {
             flex: 1;
             display: flex;
@@ -43,7 +60,7 @@
         }
 
         .left-panel h1 {
-            font-size: 48px;
+            font-size: 42px;
             background: linear-gradient(90deg, #00f5ff, #ff00c8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -54,11 +71,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
         .card {
-            width: 90%;
-            max-width: 450px;
+            width: 100%;
+            max-width: 500px;
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(20px);
             padding: 30px;
@@ -85,7 +103,7 @@
             padding: 14px;
             border-radius: 15px;
             border: none;
-            margin-top: 12px;
+            margin-top: 10px;
             background: linear-gradient(90deg, #00f5ff, #ff00c8);
             color: white;
             font-weight: bold;
@@ -101,21 +119,11 @@
             color: #111;
         }
 
-        .toggle-theme {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: auto;
-            padding: 8px 15px;
-            border-radius: 20px;
-            background: white;
-            color: black;
-            font-size: 12px;
-            cursor: pointer;
+        .examples-container {
+            margin-top: 15px;
         }
 
         .examples {
-            margin-top: 15px;
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -131,6 +139,25 @@
 
         body.light .example-chip {
             background: #eee;
+        }
+
+        .hidden-examples {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .show-toggle {
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        body.light .show-toggle {
+            background: #ddd;
         }
 
         .result {
@@ -156,7 +183,6 @@
         @media(max-width: 900px) {
             body { flex-direction: column; }
         }
-
     </style>
 </head>
 <body>
@@ -169,14 +195,16 @@
 </div>
 
 <div class="right-panel">
-    <div class="card">
+<div class="card">
 
-        <h2>Analyze Expense</h2>
+    <h2>Analyze Expense</h2>
 
-        <input type="text" id="description" placeholder="Enter expense description...">
+    <input type="text" id="description" placeholder="Enter expense description...">
 
-        <button onclick="predictExpense()">Predict Category</button>
-        <button id="voiceBtn" onclick="startVoice()">🎙 Speak Expense</button>
+    <button onclick="predictExpense()">Predict Category</button>
+    <button id="voiceBtn" onclick="startVoice()">🎙 Speak Expense</button>
+
+    <div class="examples-container">
 
         <div class="examples">
             <div class="example-chip" onclick="fillExample('Swiggy food order')">Swiggy</div>
@@ -187,6 +215,9 @@
             <div class="example-chip" onclick="fillExample('Petrol pump payment')">Petrol</div>
             <div class="example-chip" onclick="fillExample('Mobile recharge Airtel')">Recharge</div>
             <div class="example-chip" onclick="fillExample('Doctor consultation fee')">Doctor</div>
+        </div>
+
+        <div class="examples hidden-examples" id="moreExamples">
             <div class="example-chip" onclick="fillExample('Gym membership payment')">Gym</div>
             <div class="example-chip" onclick="fillExample('Mutual fund SIP investment')">SIP</div>
             <div class="example-chip" onclick="fillExample('Stock market investment')">Stocks</div>
@@ -194,11 +225,23 @@
             <div class="example-chip" onclick="fillExample('Restaurant dinner with friends')">Restaurant</div>
             <div class="example-chip" onclick="fillExample('Flight ticket booking')">Flight</div>
             <div class="example-chip" onclick="fillExample('Zomato order')">Zomato</div>
+            <div class="example-chip" onclick="fillExample('Flipkart electronics purchase')">Flipkart</div>
+            <div class="example-chip" onclick="fillExample('Water bill payment')">Water Bill</div>
+            <div class="example-chip" onclick="fillExample('Internet broadband recharge')">Broadband</div>
+            <div class="example-chip" onclick="fillExample('Medicine purchase at pharmacy')">Medicine</div>
+            <div class="example-chip" onclick="fillExample('UPI transfer to friend')">UPI Transfer</div>
+            <div class="example-chip" onclick="fillExample('Bus ticket booking')">Bus</div>
+            <div class="example-chip" onclick="fillExample('Hotel booking payment')">Hotel</div>
+            <div class="example-chip" onclick="fillExample('Insurance premium payment')">Insurance</div>
         </div>
 
-        <div class="result" id="result"></div>
+        <button id="toggleBtn" class="show-toggle" onclick="toggleExamples()">Show More</button>
 
     </div>
+
+    <div class="result" id="result"></div>
+
+</div>
 </div>
 
 <script>
@@ -209,6 +252,19 @@ function toggleTheme() {
 function fillExample(text) {
     document.getElementById("description").value = text;
     predictExpense();
+}
+
+function toggleExamples() {
+    const more = document.getElementById("moreExamples");
+    const btn = document.getElementById("toggleBtn");
+
+    if (more.style.maxHeight && more.style.maxHeight !== "0px") {
+        more.style.maxHeight = "0px";
+        btn.innerText = "Show More";
+    } else {
+        more.style.maxHeight = more.scrollHeight + "px";
+        btn.innerText = "Show Less";
+    }
 }
 
 function predictExpense() {
