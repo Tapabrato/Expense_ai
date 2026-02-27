@@ -33,16 +33,10 @@
             backdrop-filter: blur(15px);
             border-radius: 20px;
             padding: 40px;
-            width: 450px;
+            width: 480px;
             text-align: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
             color: white;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         h2 {
@@ -65,7 +59,7 @@
             padding: 12px;
             border-radius: 10px;
             border: none;
-            background: #ffffff;
+            background: white;
             color: #333;
             font-weight: bold;
             cursor: pointer;
@@ -129,6 +123,29 @@
             color: #333;
         }
 
+        .more-examples {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .toggle-btn {
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.4);
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: white;
+            color: #333;
+        }
+
         .footer {
             margin-top: 20px;
             font-size: 12px;
@@ -148,15 +165,29 @@
 
     <div class="examples">
         <p>Try examples:</p>
+
+        <!-- Always visible -->
         <span onclick="fillExample('Swiggy food order')">Swiggy food order</span>
         <span onclick="fillExample('Uber ride to airport')">Uber ride</span>
         <span onclick="fillExample('Electricity bill payment')">Electricity bill</span>
         <span onclick="fillExample('Amazon shopping purchase')">Amazon shopping</span>
-        <span onclick="fillExample('Netflix subscription monthly')">Netflix subscription</span>
-        <span onclick="fillExample('Doctor visit consultation')">Doctor visit</span>
-        <span onclick="fillExample('College course fee payment')">College fee</span>
-        <span onclick="fillExample('SIP investment in mutual fund')">SIP investment</span>
-        <span onclick="fillExample('UPI transfer to friend')">UPI transfer</span>
+        <span onclick="fillExample('Netflix subscription monthly')">Netflix</span>
+
+        <!-- Hidden -->
+        <div id="moreExamples" class="more-examples">
+            <span onclick="fillExample('Zomato dinner payment')">Zomato dinner</span>
+            <span onclick="fillExample('Petrol pump payment')">Petrol payment</span>
+            <span onclick="fillExample('Mobile recharge Airtel')">Mobile recharge</span>
+            <span onclick="fillExample('Doctor visit consultation fee')">Doctor visit</span>
+            <span onclick="fillExample('College semester fee payment')">College fee</span>
+            <span onclick="fillExample('SIP investment in mutual fund')">SIP investment</span>
+            <span onclick="fillExample('Stock market investment')">Stock investment</span>
+            <span onclick="fillExample('UPI transfer to friend')">UPI transfer</span>
+            <span onclick="fillExample('Spotify premium subscription')">Spotify</span>
+            <span onclick="fillExample('Flipkart electronics order')">Flipkart order</span>
+        </div>
+
+        <button id="toggleBtn" class="toggle-btn" onclick="toggleExamples()">Show More</button>
     </div>
 
     <div id="result"></div>
@@ -198,15 +229,13 @@ function predict() {
         bar.style.width = confidence + "%";
         bar.innerHTML = confidence + "% Confidence";
 
-        // Dynamic color based on confidence
         if (confidence > 80) {
-            bar.style.background = "#28a745";  // Green
+            bar.style.background = "#28a745";
         } else if (confidence > 50) {
-            bar.style.background = "#ffc107";  // Yellow
+            bar.style.background = "#ffc107";
         } else {
-            bar.style.background = "#dc3545";  // Red
+            bar.style.background = "#dc3545";
         }
-
     })
     .catch(error => {
         document.getElementById("result").innerHTML =
@@ -216,6 +245,19 @@ function predict() {
 
 function fillExample(text) {
     document.getElementById("description").value = text;
+}
+
+function toggleExamples() {
+    let more = document.getElementById("moreExamples");
+    let btn = document.getElementById("toggleBtn");
+
+    if (more.style.maxHeight) {
+        more.style.maxHeight = null;
+        btn.innerText = "Show More";
+    } else {
+        more.style.maxHeight = more.scrollHeight + "px";
+        btn.innerText = "Show Less";
+    }
 }
 </script>
 
