@@ -38,17 +38,20 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: auto;              /* Prevent full width */
+    padding: 6px 12px;
+    border-radius: 20px;
     border: none;
     cursor: pointer;
-    font-size: 16px;
-    background: linear-gradient(90deg, #00f5ff, #ff00c8);
+    font-size: 14px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
     color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+}
+
+body.light .toggle-theme {
+    background: #ddd;
+    color: #111;
 }
 
         .left-panel {
