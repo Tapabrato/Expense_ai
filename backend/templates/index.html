@@ -57,7 +57,7 @@
 
         .card {
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(20px);
             padding: 30px;
@@ -97,6 +97,21 @@
 
         button:hover {
             transform: scale(1.05);
+        }
+
+        #voiceBtn {
+            background: #111;
+        }
+
+        #voiceBtn.listening {
+            background: red;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px red; }
+            50% { box-shadow: 0 0 20px red; }
+            100% { box-shadow: 0 0 5px red; }
         }
 
         .result {
@@ -146,8 +161,8 @@
 
     <div class="left-panel">
         <h1>AI Expense Intelligence</h1>
-        <p>Smart categorization powered by Machine Learning.  
-           Type any transaction description and let AI decide.</p>
+        <p>Smart categorization powered by Machine Learning.<br>
+           Type or speak your transaction and let AI decide.</p>
     </div>
 
     <div class="right-panel">
@@ -159,6 +174,8 @@
 
             <button onclick="predictExpense()">Predict Category</button>
 
+            <button id="voiceBtn" onclick="startVoice()">🎙 Speak Expense</button>
+
             <div class="result" id="result"></div>
 
         </div>
@@ -168,6 +185,8 @@
 function predictExpense() {
 
     const description = document.getElementById("description").value;
+
+    if (!description) return;
 
     fetch("/predict", {
         method: "POST",
@@ -187,6 +206,41 @@ function predictExpense() {
             </div>
         `;
     });
+}
+
+
+function startVoice() {
+
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Voice recognition not supported. Use Google Chrome.");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+
+    const voiceBtn = document.getElementById("voiceBtn");
+
+    recognition.start();
+    voiceBtn.classList.add("listening");
+    voiceBtn.innerText = "🎧 Listening...";
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("description").value = transcript;
+
+        voiceBtn.classList.remove("listening");
+        voiceBtn.innerText = "🎙 Speak Expense";
+
+        predictExpense();
+    };
+
+    recognition.onerror = function() {
+        voiceBtn.classList.remove("listening");
+        voiceBtn.innerText = "🎙 Speak Expense";
+        alert("Voice recognition error.");
+    };
 }
 </script>
 

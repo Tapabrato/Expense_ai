@@ -2,76 +2,56 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import os
 
-# ---------------------------------
-# Initialize Flask App
-# ---------------------------------
 app = Flask(__name__)
 
-# ---------------------------------
-# Load Model & Vectorizer
-# ---------------------------------
-MODEL_PATH = "model.pkl"
-VECTORIZER_PATH = "vectorizer.pkl"
+# Load trained model and vectorizer
+model = joblib.load("model.pkl")
+vectorizer = joblib.load("vectorizer.pkl")
 
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError("model.pkl not found. Please run train.py first.")
 
-if not os.path.exists(VECTORIZER_PATH):
-    raise FileNotFoundError("vectorizer.pkl not found. Please run train.py first.")
-
-model = joblib.load(MODEL_PATH)
-vectorizer = joblib.load(VECTORIZER_PATH)
-
-print("✅ Model and Vectorizer loaded successfully!")
-
-# ---------------------------------
-# Home Route (Frontend)
-# ---------------------------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# ---------------------------------
-# Prediction API
-# ---------------------------------
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         data = request.get_json()
 
-        if not data:
-            return jsonify({"error": "No input data provided"}), 400
+        # Get description safely
+        description = data.get("description", "")
 
-        description = data.get("description")
-
-        if not description:
-            return jsonify({"error": "Description is required"}), 400
+        if description.strip() == "":
+            return jsonify({
+                "category": "No Input",
+                "probability": 0
+            })
 
         # Transform input text
-        vect = vectorizer.transform([description])
+        vector = vectorizer.transform([description])
 
         # Predict category
-        prediction = model.predict(vect)[0]
+        prediction = model.predict(vector)[0]
 
-        # Get probability (confidence)
-        if hasattr(model, "predict_proba"):
-            probabilities = model.predict_proba(vect)[0]
-            probability = max(probabilities) * 100
-        else:
-            probability = 100.0  # fallback if model doesn't support probability
+        # Get probabilities
+        probabilities = model.predict_proba(vector)[0]
+
+        # Get confidence score
+        confidence = round(max(probabilities) * 100, 2)
 
         return jsonify({
             "category": prediction,
-            "confidence": round(probability, 2)
+            "probability": confidence
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "category": "Error",
+            "probability": 0,
+            "error": str(e)
+        })
 
 
-# ---------------------------------
-# Run Server
-# ---------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
