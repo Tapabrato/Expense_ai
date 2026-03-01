@@ -38,7 +38,8 @@ class Expense(db.Model):
 
 # Create DB tables
 with app.app_context():
-    db.create_all()
+    db.drop_all()      # Delete old data
+    db.create_all()    # Create fresh tables
 
 # -------------------------------
 # HOME ROUTE
