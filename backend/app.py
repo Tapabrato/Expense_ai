@@ -1,129 +1,132 @@
+from flask_migrate import Migrate
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
-import joblib
-from datetime import datetime
-from collections import defaultdict
-import os
 
 app = Flask(__name__)
 
-# -------------------------------
-# DATABASE CONFIG
-# -------------------------------
+# Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///budget.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-# -------------------------------
-# LOAD AI MODEL
-# -------------------------------
-model = joblib.load("model.pkl")
-vectorizer = joblib.load("vectorizer.pkl")
-
-# -------------------------------
+# ==============================
 # DATABASE MODELS
-# -------------------------------
+# ==============================
+
 class Budget(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    month = db.Column(db.String(20))
-    year = db.Column(db.Integer)
-    total_budget = db.Column(db.Float)
+    amount = db.Column(db.Float, nullable=False)
 
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(200))
-    amount = db.Column(db.Float)
-    category = db.Column(db.String(50))
-    date = db.Column(db.String(20))
+    description = db.Column(db.String(200), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    category = db.Column(db.String(100), nullable=False)
 
-# Create DB tables
-with app.app_context():
-    db.drop_all()      # Delete old data
-    db.create_all()    # Create fresh tables
+# ==============================
+# CATEGORY DETECTION FUNCTION
+# ==============================
 
-# -------------------------------
-# HOME ROUTE
-# -------------------------------
-@app.route("/")
-def home():
-    current_month = datetime.now().strftime("%B")
-    current_year = datetime.now().year
+def detect_category(description):
+    description = description.lower()
 
-    budget = Budget.query.filter_by(month=current_month, year=current_year).first()
-    expenses = Expense.query.filter(Expense.date.contains(current_month)).all()
+    food_keywords = ["food", "pizza", "burger", "restaurant", "dinner", "lunch", "groceries","coffee","zomato","swiggy"]
+    travel_keywords = ["travel", "bus", "train", "uber", "ola", "flight", "cab"]
+    entertainment_keywords = ["movie", "netflix", "game", "concert", "subscription"]
+    shopping_keywords = ["shop", "clothes", "amazon", "flipkart", "mall","myntra","ajio","lifestyle"]
 
-    total_spent = sum(exp.amount for exp in expenses)
+    if any(word in description for word in food_keywords):
+        return "Food"
 
-    remaining = 0
-    total_budget = 0
-    if budget:
-        total_budget = budget.total_budget
-        remaining = total_budget - total_spent
+    elif any(word in description for word in travel_keywords):
+        return "Travel"
 
-    # Category-wise summary
-    category_summary = defaultdict(float)
-    for exp in expenses:
-        category_summary[exp.category] += exp.amount
+    elif any(word in description for word in entertainment_keywords):
+        return "Entertainment"
 
-    warning = False
-    if budget and remaining < (0.2 * total_budget):
-        warning = True
+    elif any(word in description for word in shopping_keywords):
+        return "Shopping"
 
-    return render_template("index.html",
-                           total_budget=total_budget,
-                           total_spent=total_spent,
-                           remaining=remaining,
-                           category_summary=category_summary,
-                           warning=warning,
-                           current_month=current_month,
-                           current_year=current_year)
-
-# -------------------------------
-# SET BUDGET
-# -------------------------------
-@app.route("/set_budget", methods=["POST"])
-def set_budget():
-    month = datetime.now().strftime("%B")
-    year = datetime.now().year
-    amount = float(request.form["budget_amount"])
-
-    existing = Budget.query.filter_by(month=month, year=year).first()
-
-    if existing:
-        existing.total_budget = amount
     else:
-        new_budget = Budget(month=month, year=year, total_budget=amount)
-        db.session.add(new_budget)
+        return "Other"
 
+# ==============================
+# ROUTES
+# ==============================
+
+# 🔹 Start Page
+@app.route('/')
+def start():
+    return render_template('start.html')
+
+
+# 🔹 Dashboard Page
+@app.route('/dashboard')
+def dashboard():
+    budgets = Budget.query.all()
+    expenses = Expense.query.all()
+
+    total_budget = sum(b.amount for b in budgets)
+    total_spent = sum(e.amount for e in expenses)
+    remaining = total_budget - total_spent
+
+    # Category Summary for Chart
+    category_summary = {}
+    for expense in expenses:
+        if expense.category in category_summary:
+            category_summary[expense.category] += expense.amount
+        else:
+            category_summary[expense.category] = expense.amount
+
+    warning = remaining <= (0.2 * total_budget) if total_budget > 0 else False
+
+    return render_template(
+        'index.html',
+        total_budget=total_budget,
+        total_spent=total_spent,
+        remaining=remaining,
+        category_summary=category_summary,
+        warning=warning
+    )
+
+
+# 🔹 Set Budget
+@app.route('/set_budget', methods=['POST'])
+def set_budget():
+    amount = float(request.form['budget_amount'])
+    new_budget = Budget(amount=amount)
+    db.session.add(new_budget)
     db.session.commit()
-    return redirect("/")
+    return redirect('/dashboard')
 
-# -------------------------------
-# ADD EXPENSE
-# -------------------------------
-@app.route("/add_expense", methods=["POST"])
+
+# 🔹 Add Expense
+@app.route('/add_expense', methods=['POST'])
 def add_expense():
-    description = request.form["description"]
-    amount = float(request.form["amount"])
+    description = request.form['description']
+    amount = float(request.form['amount'])
 
-    # Predict category
-    transformed = vectorizer.transform([description])
-    predicted_category = model.predict(transformed)[0]
-
-    date = datetime.now().strftime("%B %d, %Y")
+    category = detect_category(description)
 
     new_expense = Expense(
         description=description,
         amount=amount,
-        category=predicted_category,
-        date=date
+        category=category
     )
 
     db.session.add(new_expense)
     db.session.commit()
 
-    return redirect("/")
+    return redirect('/dashboard')
 
-# -------------------------------
+
+# ==============================
+# CREATE DATABASE
+# ==============================
+
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
