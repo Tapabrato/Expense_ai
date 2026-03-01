@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Expense Intelligence</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Budget Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -10,302 +11,258 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
-            transition: background 0.3s, color 0.3s;
         }
 
         body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             min-height: 100vh;
-            display: flex;
-            background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #000000);
-            background-size: 400% 400%;
-            animation: gradientBG 10s ease infinite;
             color: white;
+            padding: 30px;
+            animation: fadeIn 0.8s ease-in-out;
+            transition: 0.4s ease;
         }
 
-        body.light {
-            background: linear-gradient(135deg, #f6f9fc, #e9eff5);
-            color: #111;
-            animation: none;
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* LIGHT MODE */
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            color: #222;
         }
 
-        .toggle-theme {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: auto;              /* Prevent full width */
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    color: white;
-}
-
-body.light .toggle-theme {
-    background: #ddd;
-    color: #111;
-}
-
-        .left-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 60px;
+        body.light-mode .card,
+        body.light-mode .example-section {
+            background: rgba(255,255,255,0.9);
+            color: #222;
         }
 
-        .left-panel h1 {
-            font-size: 42px;
-            background: linear-gradient(90deg, #00f5ff, #ff00c8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        body.light-mode input {
+            background: #eee;
+            color: #222;
         }
 
-        .right-panel {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        body.light-mode input::placeholder {
+            color: #666;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 30px;
+        }
+
+        /* THEME BUTTON */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 25px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            transition: 0.3s;
+            width: auto;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
 
         .card {
-            width: 100%;
-            max-width: 500px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(20px);
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 0 40px rgba(0,255,255,0.2);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        body.light .card {
-            background: white;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
         }
 
         input {
             width: 100%;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 10px;
             border: none;
             outline: none;
-            margin-top: 15px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            border-radius: 15px;
-            border: none;
-            margin-top: 10px;
-            background: linear-gradient(90deg, #00f5ff, #ff00c8);
+            background: rgba(255,255,255,0.2);
             color: white;
-            font-weight: bold;
-            cursor: pointer;
         }
 
-        #voiceBtn {
-            background: #222;
+        input::placeholder {
+            color: #ddd;
         }
 
-        body.light #voiceBtn {
-            background: #ddd;
-            color: #111;
-        }
-
-        .examples-container {
-            margin-top: 15px;
-        }
-
-        .examples {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .example-chip {
-            padding: 6px 10px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.2);
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        body.light .example-chip {
-            background: #eee;
-        }
-
-        .hidden-examples {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease;
-        }
-
-        .show-toggle {
+        .form-btn {
+            width: 100%;
+            padding: 12px;
             margin-top: 10px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.2);
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        body.light .show-toggle {
-            background: #ddd;
-        }
-
-        .result {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .progress {
-            margin-top: 8px;
-            height: 8px;
             border-radius: 10px;
-            background: rgba(255,255,255,0.2);
-            overflow: hidden;
+            border: none;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00f5ff, #ff00c8);
-            width: 0%;
-            transition: width 0.6s ease;
+        .form-btn:hover {
+            transform: scale(1.05);
         }
 
-        @media(max-width: 900px) {
-            body { flex-direction: column; }
+        .summary p {
+            margin: 10px 0;
+            font-size: 17px;
         }
+
+        .warning {
+            color: #ff4d4d;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {opacity: 0.4;}
+        }
+
+        canvas {
+            margin-top: 20px;
+        }
+
+        /* EXAMPLE SECTION AT BOTTOM */
+        .example-section {
+            margin-top: 60px;
+            padding: 30px;
+            text-align: center;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .example-section h2 {
+            margin-bottom: 15px;
+        }
+
+        .example-section p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
     </style>
 </head>
+
 <body>
 
-<button class="toggle-theme" onclick="toggleTheme()">🌙 / ☀</button>
+<button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
 
-<div class="left-panel">
-    <h1>AI Expense Intelligence</h1>
-    <p>Type or speak your transaction and let AI categorize it.</p>
-</div>
+<h1>💰 AI Smart Budget Dashboard</h1>
 
-<div class="right-panel">
-<div class="card">
+<div class="container">
 
-    <h2>Analyze Expense</h2>
-
-    <input type="text" id="description" placeholder="Enter expense description...">
-
-    <button onclick="predictExpense()">Predict Category</button>
-    <button id="voiceBtn" onclick="startVoice()">🎙 Speak Expense</button>
-
-    <div class="examples-container">
-
-        <div class="examples">
-            <div class="example-chip" onclick="fillExample('Swiggy food order')">Swiggy</div>
-            <div class="example-chip" onclick="fillExample('Uber ride to office')">Uber</div>
-            <div class="example-chip" onclick="fillExample('Electricity bill payment')">Electricity</div>
-            <div class="example-chip" onclick="fillExample('Amazon shopping purchase')">Amazon</div>
-            <div class="example-chip" onclick="fillExample('Netflix monthly subscription')">Netflix</div>
-            <div class="example-chip" onclick="fillExample('Petrol pump payment')">Petrol</div>
-            <div class="example-chip" onclick="fillExample('Mobile recharge Airtel')">Recharge</div>
-            <div class="example-chip" onclick="fillExample('Doctor consultation fee')">Doctor</div>
-        </div>
-
-        <div class="examples hidden-examples" id="moreExamples">
-            <div class="example-chip" onclick="fillExample('Gym membership payment')">Gym</div>
-            <div class="example-chip" onclick="fillExample('Mutual fund SIP investment')">SIP</div>
-            <div class="example-chip" onclick="fillExample('Stock market investment')">Stocks</div>
-            <div class="example-chip" onclick="fillExample('College semester fees')">College</div>
-            <div class="example-chip" onclick="fillExample('Restaurant dinner with friends')">Restaurant</div>
-            <div class="example-chip" onclick="fillExample('Flight ticket booking')">Flight</div>
-            <div class="example-chip" onclick="fillExample('Zomato order')">Zomato</div>
-            <div class="example-chip" onclick="fillExample('Flipkart electronics purchase')">Flipkart</div>
-            <div class="example-chip" onclick="fillExample('Water bill payment')">Water Bill</div>
-            <div class="example-chip" onclick="fillExample('Internet broadband recharge')">Broadband</div>
-            <div class="example-chip" onclick="fillExample('Medicine purchase at pharmacy')">Medicine</div>
-            <div class="example-chip" onclick="fillExample('UPI transfer to friend')">UPI Transfer</div>
-            <div class="example-chip" onclick="fillExample('Bus ticket booking')">Bus</div>
-            <div class="example-chip" onclick="fillExample('Hotel booking payment')">Hotel</div>
-            <div class="example-chip" onclick="fillExample('Insurance premium payment')">Insurance</div>
-        </div>
-
-        <button id="toggleBtn" class="show-toggle" onclick="toggleExamples()">Show More</button>
-
+    <!-- Set Budget -->
+    <div class="card">
+        <h2>Set Monthly Budget</h2>
+        <form method="POST" action="/set_budget">
+            <input type="number" name="budget_amount" placeholder="Enter Budget Amount" required>
+            <button type="submit" class="form-btn">Save Budget</button>
+        </form>
     </div>
 
-    <div class="result" id="result"></div>
+    <!-- Add Expense -->
+    <div class="card">
+        <h2>Add Expense</h2>
+        <form method="POST" action="/add_expense">
+            <input type="text" name="description" placeholder="Expense Description" required>
+            <input type="number" step="0.01" name="amount" placeholder="Amount" required>
+            <button type="submit" class="form-btn">Add Expense</button>
+        </form>
+    </div>
+
+    <!-- Summary -->
+    <div class="card summary">
+        <h2>Monthly Summary</h2>
+        <p>💵 Budget: ₹ {{total_budget}}</p>
+        <p>📉 Spent: ₹ {{total_spent}}</p>
+        <p>💰 Remaining: ₹ {{remaining}}</p>
+
+        {% if warning %}
+        <p class="warning">⚠ Budget Almost Exhausted!</p>
+        {% endif %}
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="card">
+        <h2>Category Breakdown</h2>
+        <canvas id="expenseChart"></canvas>
+    </div>
 
 </div>
+
+<!-- Bottom Example Section -->
+<div class="example-section">
+    <h2>📌 How To Use This Dashboard</h2>
+    <p>1️⃣ Set your Monthly Budget (example: ₹ 10000)</p>
+    <p>2️⃣ Add an expense (example: "Pizza with friends" ₹ 500)</p>
+    <p>3️⃣ AI automatically detects the category</p>
+    <p>4️⃣ Track your remaining budget visually using the chart 📊</p>
 </div>
 
 <script>
 function toggleTheme() {
-    document.body.classList.toggle("light");
+    document.body.classList.toggle("light-mode");
+    const btn = document.getElementById("themeBtn");
+    btn.innerHTML = document.body.classList.contains("light-mode") ? "☀" : "🌙";
 }
 
-function fillExample(text) {
-    document.getElementById("description").value = text;
-    predictExpense();
-}
+const categoryData = {
+    labels: [{% for category in category_summary.keys() %}"{{category}}",{% endfor %}],
+    datasets: [{
+        label: 'Expenses',
+        data: [{% for amount in category_summary.values() %}{{amount}},{% endfor %}],
+        backgroundColor: [
+            '#ff6b6b','#feca57','#48dbfb','#1dd1a1','#5f27cd','#ff9ff3'
+        ],
+        borderWidth: 1
+    }]
+};
 
-function toggleExamples() {
-    const more = document.getElementById("moreExamples");
-    const btn = document.getElementById("toggleBtn");
-
-    if (more.style.maxHeight && more.style.maxHeight !== "0px") {
-        more.style.maxHeight = "0px";
-        btn.innerText = "Show More";
-    } else {
-        more.style.maxHeight = more.scrollHeight + "px";
-        btn.innerText = "Show Less";
+new Chart(
+    document.getElementById('expenseChart'),
+    {
+        type: 'doughnut',
+        data: categoryData,
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        color: document.body.classList.contains("light-mode") ? "#222" : "white"
+                    }
+                }
+            }
+        }
     }
-}
-
-function predictExpense() {
-    const description = document.getElementById("description").value;
-    if (!description) return;
-
-    fetch("/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: description })
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById("result").innerHTML = `
-            <div><strong>${data.category}</strong></div>
-            <div>Confidence: ${data.probability}%</div>
-            <div class="progress">
-                <div class="progress-bar" style="width:${data.probability}%"></div>
-            </div>
-        `;
-    });
-}
-
-function startVoice() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Use Chrome for voice recognition.");
-        return;
-    }
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.start();
-
-    recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById("description").value = transcript;
-        predictExpense();
-    };
-}
+);
 </script>
 
 </body>
