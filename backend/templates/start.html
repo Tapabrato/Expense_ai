@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome | AI Budget Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: white;
+            position: relative;
+
+            /* Animated Gradient Background */
+            background: linear-gradient(-45deg, #141e30, #243b55, #0f2027, #2c5364);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Circles */
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            animation: float 8s infinite ease-in-out;
+        }
+
+        .circle:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 15%;
+        }
+
+        .circle:nth-child(2) {
+            width: 300px;
+            height: 300px;
+            bottom: 10%;
+            right: 15%;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .welcome-box {
+            position: relative;
+            text-align: center;
+            padding: 60px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            animation: fadeIn 1.2s ease-in-out;
+            z-index: 10;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(40px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 40px;
+            font-size: 18px;
+            opacity: 0.85;
+        }
+
+        /* SLIDE BUTTON */
+        .start-btn {
+            position: relative;
+            padding: 15px 50px;
+            font-size: 18px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            overflow: hidden;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            transition: 0.3s ease;
+        }
+
+        .start-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            transition: 0.4s;
+            z-index: -1;
+        }
+
+        .start-btn:hover::before {
+            left: 0;
+        }
+
+        .start-btn:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- Floating circles -->
+<div class="circle"></div>
+<div class="circle"></div>
+
+<div class="welcome-box">
+    <h1>💰 AI Budget Planner</h1>
+    <p>Smartly manage your monthly expenses with AI insights</p>
+
+    <form action="/dashboard">
+        <button class="start-btn">Enter Dashboard 🚀</button>
+    </form>
+</div>
+
+</body>
+</html>
