@@ -1,57 +1,146 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, redirect
 import joblib
-import os
+import sqlite3
+import re
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Load trained model and vectorizer
+# ==========================
+# LOAD ML MODEL (UNCHANGED)
+# ==========================
 model = joblib.load("model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
 
-@app.route("/")
+# ==========================
+# DATABASE INITIALIZATION
+# ==========================
+def init_db():
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    # Expense Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS expenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT,
+            amount REAL,
+            category TEXT,
+            date TEXT
+        )
+    """)
+
+    # Budget Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS budget (
+            id INTEGER PRIMARY KEY,
+            monthly_budget REAL
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+# ==========================
+# EXTRACT AMOUNT FROM TEXT
+# ==========================
+def extract_amount(text):
+    match = re.search(r'\d+', text)
+    return float(match.group()) if match else 0
+
+
+# ==========================
+# MONTHLY SUMMARY FUNCTION
+# ==========================
+def get_month_summary():
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    current_month = datetime.now().strftime("%Y-%m")
+
+    # Total spent this month
+    cursor.execute("""
+        SELECT SUM(amount) FROM expenses
+        WHERE strftime('%Y-%m', date) = ?
+    """, (current_month,))
+    total_spent = cursor.fetchone()[0] or 0
+
+    # Get budget
+    cursor.execute("SELECT monthly_budget FROM budget WHERE id=1")
+    budget_row = cursor.fetchone()
+    budget = budget_row[0] if budget_row else 0
+
+    remaining = budget - total_spent
+
+    conn.close()
+
+    return total_spent, budget, remaining
+
+
+# ==========================
+# HOME ROUTE (AI + BUDGET)
+# ==========================
+@app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("index.html")
+    prediction = None
 
+    if request.method == "POST":
+        user_text = request.form["text"]
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    try:
-        data = request.get_json()
-
-        # Get description safely
-        description = data.get("description", "")
-
-        if description.strip() == "":
-            return jsonify({
-                "category": "No Input",
-                "probability": 0
-            })
-
-        # Transform input text
-        vector = vectorizer.transform([description])
-
-        # Predict category
+        # ML Prediction (Categorizer System)
+        vector = vectorizer.transform([user_text])
         prediction = model.predict(vector)[0]
 
-        # Get probabilities
-        probabilities = model.predict_proba(vector)[0]
+        # Extract amount
+        amount = extract_amount(user_text)
+        today = datetime.now().strftime("%Y-%m-%d")
 
-        # Get confidence score
-        confidence = round(max(probabilities) * 100, 2)
+        # Store in database
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
 
-        return jsonify({
-            "category": prediction,
-            "probability": confidence
-        })
+        cursor.execute("""
+            INSERT INTO expenses (text, amount, category, date)
+            VALUES (?, ?, ?, ?)
+        """, (user_text, amount, prediction, today))
 
-    except Exception as e:
-        return jsonify({
-            "category": "Error",
-            "probability": 0,
-            "error": str(e)
-        })
+        conn.commit()
+        conn.close()
+
+    # Always calculate monthly summary
+    total_spent, budget, remaining = get_month_summary()
+
+    return render_template("index.html",
+                           prediction=prediction,
+                           total_spent=total_spent,
+                           budget=budget,
+                           remaining=remaining)
 
 
+# ==========================
+# SET MONTHLY BUDGET ROUTE
+# ==========================
+@app.route("/set_budget", methods=["POST"])
+def set_budget():
+    budget = request.form["budget"]
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM budget")
+    cursor.execute("INSERT INTO budget (id, monthly_budget) VALUES (1, ?)", (budget,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+
+# ==========================
+# RUN APPLICATION
+# ==========================
 if __name__ == "__main__":
+    init_db()
     app.run(debug=True)
